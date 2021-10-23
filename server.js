@@ -8,6 +8,8 @@ const bootcamps = require('./routes/bootcamps')
 dotenv.config({ path: './config/config.env' })
 
 const app = express()
+
+// Mounting Our Routes
 app.use('/api/v1/bootcamps', bootcamps)
 
 
