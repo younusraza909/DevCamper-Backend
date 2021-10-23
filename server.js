@@ -1,12 +1,16 @@
 const express = require('express')
 const dotenv = require('dotenv')
 const morgan = require('morgan')
+const connectDb = require('./config/db')
 
 // Router Files Import Here
 const bootcamps = require('./routes/bootcamps')
 
 //load all config variables
 dotenv.config({ path: './config/config.env' })
+
+// Connecting With MonogoDb Database
+connectDb()
 
 const app = express()
 
