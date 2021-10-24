@@ -26,6 +26,12 @@ app.use('/api/v1/bootcamps', bootcamps)
 
 const PORT = process.env.PORT || 5000
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Your app is running on ${process.env.NODE_ENV} mode and on PORT ${process.env.PORT}`);
+})
+
+process.on('unhandledRejection', (err, promise) => {
+    console.log(err.message);
+
+    server.close(() => process.exit(1))
 })
