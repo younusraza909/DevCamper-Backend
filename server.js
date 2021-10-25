@@ -2,6 +2,7 @@ const express = require('express')
 const dotenv = require('dotenv')
 const morgan = require('morgan')
 const connectDb = require('./config/db')
+const ErrorHandler = require("./middleware/error")
 
 // Router Files Import Here
 const bootcamps = require('./routes/bootcamps')
@@ -24,6 +25,9 @@ if (process.env.NODE_ENV === 'development') {
 
 // Mounting Our Routes
 app.use('/api/v1/bootcamps', bootcamps)
+
+// Monuting Error Handler Middleware
+app.use(ErrorHandler)
 
 
 
