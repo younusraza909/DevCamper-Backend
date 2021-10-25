@@ -4,11 +4,13 @@ const morgan = require('morgan')
 const connectDb = require('./config/db')
 const ErrorHandler = require("./middleware/error")
 
+//load all config variables
+dotenv.config({ path: './config/config.env' })
+
 // Router Files Import Here
 const bootcamps = require('./routes/bootcamps')
 
-//load all config variables
-dotenv.config({ path: './config/config.env' })
+
 
 // Connecting With MonogoDb Database
 connectDb()
