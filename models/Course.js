@@ -38,4 +38,45 @@ const CourseSchema = new mongoose.Schema({
     }
 })
 
+// There are two types of mongoose method
+//Static Method Called on Whole Model itself
+//Normal Method are called on documents of that model
+
+CourseSchema.statics.getAverageCost = async function (bootcampId) {
+
+    console.log('Calculating Average Cost')
+    const obj = await this.aggregate([
+        {
+            $match: { bootcamp: bootcampId }
+        },
+        {
+            $group: {
+                _id: '$bootcamp',
+                averageCost: { $avg: '$tuition' }
+            }
+        }
+    ])
+
+    console.log(obj);
+    try {
+        await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
+            averageCost: (Math.ceil(obj[0].averageCost) / 10) * 10
+        })
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+
+//Call getAverageCost after save
+CourseSchema.post('save', function () {
+    //in order to call static method we have to call constructor on model 
+    this.constructor.getAverageCost(this.bootcamp)
+})
+
+//Call getAverageCost Before Remove
+CourseSchema.pre('remove', function () {
+    this.constructor.getAverageCost(this.bootcamp)
+})
+
 module.exports = mongoose.model('Course', CourseSchema)
