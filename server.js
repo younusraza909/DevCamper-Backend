@@ -9,6 +9,7 @@ dotenv.config({ path: './config/config.env' })
 
 // Router Files Import Here
 const bootcamps = require('./routes/bootcamps')
+const courses = require('./routes/courses')
 
 
 
@@ -27,6 +28,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Mounting Our Routes
 app.use('/api/v1/bootcamps', bootcamps)
+app.use('/api/v1/courses', courses)
 
 // Monuting Error Handler Middleware
 app.use(ErrorHandler)
