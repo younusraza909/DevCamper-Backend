@@ -98,6 +98,10 @@ const BootcampSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+}, {
+    // For Adding Virtual Property we have to add
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
 
@@ -124,6 +128,22 @@ BootcampSchema.pre('save', async function (next) {
     // Do not Save Address in db  decause we now have a formatted address in location field
     this.address = undefined
     next()
+})
+
+// Cascade Delete Courses when a bootcamp is deleted
+BootcampSchema.pre('remove', async function (next) {
+    console.log(`Courses being removed from bootcamp ${this._id}`);
+    await this.model('Course').deleteMany({ bootcamp: this._id })
+    next()
+
+})
+
+// REverse Populate with virtual
+BootcampSchema.virtual('courses', {
+    ref: 'Course',
+    localField: '_id',
+    foreignField: 'bootcamp',
+    justOne: false
 })
 
 module.exports = mongoose.model('Bootcamp', BootcampSchema)

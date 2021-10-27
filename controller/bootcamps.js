@@ -22,7 +22,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     // Create Operators likr $gt & $gte etx
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
     // Finding resource
-    query = Bootcamp.find(JSON.parse(queryStr))
+    query = Bootcamp.find(JSON.parse(queryStr)).populate('courses')
 
     // Select Field
     if (req.query.select) {
@@ -135,12 +135,16 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 // @Access   Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
 
-    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id)
+    //we can use findbyIdandDelete but it will not provoke pre remove middleware of mongoose
+    //so we will find document and will use remove method on it
+    const bootcamp = await Bootcamp.findById(req.params.id)
     if (!bootcamp) {
         return next(
             new ErrorResponse(`Bootcamp not found with this Id ${req.params.id}`, 404)
         )
     }
+
+    bootcamp.remove()
     res.status(200).json({
         success: true,
         data: {}
