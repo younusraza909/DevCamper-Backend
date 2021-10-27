@@ -69,3 +69,50 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
         data: course
     })
 })
+
+// @desc     Update a single Course
+// @Route    PUT:/api/v1/courses/:id
+// @Access   Pirvate
+
+exports.updateCourse = asyncHandler(async (req, res, next) => {
+
+    let course = await Course.findById(req.params.id)
+    if (!course) {
+        return next(
+            new ErrorResponse(`Bootcamp not found with this Id ${req.params.id}`, 404)
+        )
+    }
+
+    course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    })
+
+    res.status(200).json({
+        success: true,
+        data: course
+    })
+})
+
+
+// @desc     Delete a  Course
+// @Route    DELETE:/api/v1/courses/:id
+// @Access   Private
+exports.deleteCourse = asyncHandler(async (req, res, next) => {
+
+    //we can use findbyIdandDelete but it will not provoke pre remove middleware of mongoose
+    //so we will find document and will use remove method on it
+    const course = await Course.findById(req.params.id)
+    if (!course) {
+        return next(
+            new ErrorResponse(`Bootcamp not found with this Id ${req.params.id}`, 404)
+        )
+    }
+
+    await course.remove()
+    res.status(200).json({
+        success: true,
+        data: {}
+    })
+
+})
