@@ -1,6 +1,7 @@
 const Bootcamp = require('../models/Bootcamp')
 const ErrorResponse = require('../utils/errorResponse')
 const geocoder = require('../utils/geocoder')
+const path = require('path')
 
 // Async Handler 
 const asyncHandler = require('../middleware/async')
@@ -10,68 +11,7 @@ const asyncHandler = require('../middleware/async')
 // @Route    Get:/api/v1/bootcamps
 // @Access   Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-    let query;
-    // Copy Request Query
-    const reqQuery = { ...req.query }
-    // Field To Exclude
-    const removeFields = ['select', 'sort', "page", 'limit']
-    //Loop over remove Fields and delete them from query String
-    removeFields.forEach(params => delete reqQuery[params])
-    // Creating Query String
-    let queryStr = JSON.stringify(reqQuery)
-    // Create Operators likr $gt & $gte etx
-    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-    // Finding resource
-    query = Bootcamp.find(JSON.parse(queryStr)).populate('courses')
-
-    // Select Field
-    if (req.query.select) {
-        const fieldsToSelect = req.query.select.split(',').join(' ')
-        query.select(fieldsToSelect)
-    }
-
-    if (req.query.sort) {
-        const sortBy = req.query.sort.split(',').join(' ')
-        query.sort(sortBy)
-    } else {
-        query.sort('-createdAt')
-    }
-
-    // Pagination
-    const page = parseInt(req.query.page, 10) || 1
-    const limit = parseInt(req.query.limit, 10) || 100
-    const startIndex = (page - 1) * limit
-    const endIndex = page * limit
-    const total = await Bootcamp.countDocuments()
-
-    query = query.skip(startIndex).limit(limit)
-
-    //Executing Query
-    const bootcamps = await query
-
-    // pagination
-    const pagination = {}
-    if (endIndex < total) {
-        pagination.next = {
-            page: page + 1,
-            limit
-        }
-    }
-    if (startIndex > 0) {
-        pagination.prev = {
-            page: page - 1,
-            limit
-        }
-    }
-
-
-    res.status(200).json({
-        success: true,
-        pagination,
-        count: bootcamps.length,
-        data: bootcamps
-
-    })
+    res.status(200).json(res.advancedResults)
 })
 
 
@@ -179,4 +119,65 @@ exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
         count: bootcamps.length,
         data: bootcamps
     })
+})
+
+
+// @desc     Upload photo for  Bootcamp
+// @Route    PUT:/api/v1/bootcamps/:id/photo
+// @Access   Private
+exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
+
+    //we can use findbyIdandDelete but it will not provoke pre remove middleware of mongoose
+    //so we will find document and will use remove method on it
+    const bootcamp = await Bootcamp.findById(req.params.id)
+    if (!bootcamp) {
+        return next(
+            new ErrorResponse(`Bootcamp not found with this Id ${req.params.id}`, 404)
+        )
+    }
+
+    if (!req.files) {
+        return next(
+            new ErrorResponse(`Please upload a file`, 400)
+        )
+    }
+
+    const file = req.files.file
+
+    //Make sure that image is a photo
+    if (!file.mimetype.startsWith('image')) {
+        return next(
+            new ErrorResponse(`Please upload an image file`, 400)
+        )
+    }
+
+    // Checking File Size
+    if (file.size > process.env.MAX_FILE_UPLOAD) {
+        return next(
+            new ErrorResponse(`File Size should be less than ${process.env.MAX_FILE_UPLOAD}`, 400)
+        )
+    }
+
+    // Create Custom Filename
+    //We use path models to find file name extension
+    file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`
+
+
+    //MV is a function or method attatched to file object to save image to desired directory
+    file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async err => {
+        if (err) {
+            console.log(err)
+            return next(
+                new ErrorResponse(`Problem with file upload`, 500)
+            )
+        }
+
+        await Bootcamp.findByIdAndUpdate(req.params.id, { photo: file.name })
+
+        res.status(200).json({
+            success: true,
+            data: file.name
+        })
+    })
+
 })

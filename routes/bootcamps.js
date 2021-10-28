@@ -1,6 +1,9 @@
 const express = require('express')
 
-const { getBootcampsInRadius, getBootcamp, getBootcamps, createBootcamp, deleteBootcamp, updateBootcamp } = require('../controller/bootcamps')
+const { getBootcampsInRadius, getBootcamp, getBootcamps, createBootcamp, deleteBootcamp, updateBootcamp, bootcampPhotoUpload } = require('../controller/bootcamps')
+const advancedResults = require('../middleware/advancedResult')
+const Bootcamp = require('../models/Bootcamp')
+
 const router = express.Router()
 
 //Include Other resource Router
@@ -10,9 +13,11 @@ router.use('/:bootcampId/courses', courseRouter)
 
 //
 router.route('/radius/:zipcode/:distance').get(getBootcampsInRadius)
-router.route('/').get(getBootcamps).post(createBootcamp)
+// Implementing middleware in route before going for get bootcamp controller
+router.route('/').get(advancedResults(Bootcamp, 'courses'), getBootcamps).post(createBootcamp)
 router.route('/:id').get(getBootcamp).delete(deleteBootcamp).put(updateBootcamp)
 
+router.route('/:id/photo').put(bootcampPhotoUpload)
 
 
 module.exports = router
