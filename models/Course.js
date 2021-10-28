@@ -32,7 +32,7 @@ const CourseSchema = new mongoose.Schema({
         default: Date.now
     },
     bootcamp: {
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Bootcamp',
         required: true
     }
@@ -58,24 +58,30 @@ CourseSchema.statics.getAverageCost = async function (bootcampId) {
     ])
 
     try {
-        await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
-            averageCost: (Math.ceil(obj[0].averageCost) / 10) * 10
-        })
-    } catch (error) {
-        console.log(error)
+        if (obj[0]) {
+            await this.model("Bootcamp").findByIdAndUpdate(bootcampId, {
+                averageCost: Math.ceil(obj[0].averageCost / 10) * 10,
+            });
+        } else {
+            await this.model("Bootcamp").findByIdAndUpdate(bootcampId, {
+                averageCost: undefined,
+            });
+        }
+    } catch (err) {
+        console.error(err);
     }
 }
 
 
 //Call getAverageCost after save
-CourseSchema.post('save', function () {
+CourseSchema.post('save', async function () {
     //in order to call static method we have to call constructor on model 
-    this.constructor.getAverageCost(this.bootcamp)
+    await this.constructor.getAverageCost(this.bootcamp)
 })
 
 //Call getAverageCost Before Remove
-CourseSchema.pre('remove', function () {
-    this.constructor.getAverageCost(this.bootcamp)
+CourseSchema.pre('remove', async function () {
+    await this.constructor.getAverageCost(this.bootcamp)
 })
 
 module.exports = mongoose.model('Course', CourseSchema)
