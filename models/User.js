@@ -52,5 +52,10 @@ UserSchmea.methods.getSignedJwtToken = function () {
     })
 }
 
+// Match  User Entered Password to Hashed Password In DB
+UserSchmea.methods.matchPassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password)
+}
+
 
 module.exports = mongoose.model('User', UserSchmea)
