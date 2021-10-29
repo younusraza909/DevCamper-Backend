@@ -46,6 +46,18 @@ exports.login = asyncHandler(async (req, res, next) => {
     sendTokenResponse(user, 200, res)
 })
 
+// @desc     Get Current logged in  User
+// @Route    POST:/api/v1/auth/me
+// @Access   Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id)
+
+    res.status(200).json({
+        success: true,
+        data: user
+    })
+})
+
 
 //Get token from models,create cokkie and send response
 const sendTokenResponse = (user, statusCode, res) => {
