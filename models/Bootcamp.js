@@ -97,6 +97,11 @@ const BootcampSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    user: {
+        ref: 'User',
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 }, {
     // For Adding Virtual Property we have to add
