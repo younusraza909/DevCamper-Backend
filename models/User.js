@@ -1,6 +1,8 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
+const jwt = require('jsonwebtoken')
+
 const UserSchmea = new mongoose.Schema({
     name: {
         type: String,
@@ -34,6 +36,7 @@ const UserSchmea = new mongoose.Schema({
     }
 })
 
+
 // Encrypts Password Using bcrypt
 UserSchmea.pre('save', async function (next) {
     // Generating Salt
@@ -41,6 +44,13 @@ UserSchmea.pre('save', async function (next) {
 
     this.password = await bcrypt.hash(this.password, salt)
 })
+
+//Sign JWT and return
+UserSchmea.methods.getSignedJwtToken = function () {
+    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRE
+    })
+}
 
 
 module.exports = mongoose.model('User', UserSchmea)
