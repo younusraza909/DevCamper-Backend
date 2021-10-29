@@ -4,6 +4,7 @@ const morgan = require('morgan')
 const connectDb = require('./config/db')
 const ErrorHandler = require("./middleware/error")
 const fileupload = require('express-fileupload')
+const cookieParser = require('cookie-parser')
 const path = require('path')
 
 //load all config variables
@@ -23,6 +24,9 @@ const app = express()
 
 // Body Parser
 app.use(express.json())
+
+// Cookie Parser
+app.use(cookieParser())
 
 // Dev Logging Middleware
 if (process.env.NODE_ENV === 'development') {
