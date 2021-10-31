@@ -1,9 +1,9 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
-
+const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
 
-const UserSchmea = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please add a name']
@@ -38,7 +38,10 @@ const UserSchmea = new mongoose.Schema({
 
 
 // Encrypts Password Using bcrypt
-UserSchmea.pre('save', async function (next) {
+UserSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) {
+        next()
+    }
     // Generating Salt
     const salt = await bcrypt.genSalt(10)
 
@@ -46,16 +49,34 @@ UserSchmea.pre('save', async function (next) {
 })
 
 //Sign JWT and return
-UserSchmea.methods.getSignedJwtToken = function () {
+UserSchema.methods.getSignedJwtToken = function () {
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE
     })
 }
 
 // Match  User Entered Password to Hashed Password In DB
-UserSchmea.methods.matchPassword = async function (enteredPassword) {
+UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password)
 }
 
+//Generate and hash password token
+UserSchema.methods.getResetPasswordToken = async function () {
+    // Generate token
+    //it will return buffer so we have to convert it into string
+    const resetToken = crypto.randomBytes(20).toString('hex')
 
-module.exports = mongoose.model('User', UserSchmea)
+    //Hash Token and set to reset passwordTOken field
+    this.resetPasswordToken = crypto.createHash('sha256')
+        .update(resetToken)
+        .digest('hex')
+
+    //set Expire
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+
+}
+
+
+module.exports = mongoose.model('User', UserSchema)

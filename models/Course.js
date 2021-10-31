@@ -48,8 +48,6 @@ const CourseSchema = new mongoose.Schema({
 //Normal Method are called on documents of that model
 
 CourseSchema.statics.getAverageCost = async function (bootcampId) {
-
-    console.log('Calculating Average Cost')
     const obj = await this.aggregate([
         {
             $match: { bootcamp: bootcampId }
