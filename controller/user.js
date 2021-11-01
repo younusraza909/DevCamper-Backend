@@ -42,6 +42,7 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
         runValidators: true,
 
     });
+    await user.save()
 
     res.status(200).json({
         success: true,
@@ -53,7 +54,14 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
 // @route     DELETE /api/v1/users/:id
 // @access    Private/Admin
 exports.deleteUser = asyncHandler(async (req, res, next) => {
-    await User.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+        return next(
+            new ErrorResponse(`No user with the id of ${req.params.id}`, 404)
+        );
+    }
+    await user.remove();
 
     res.status(200).json({
         success: true,
