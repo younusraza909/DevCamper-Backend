@@ -1,5 +1,5 @@
 const express = require('express')
-const { getReviews, getReview, addReview } = require('../controller/reviews')
+const { getReviews, getReview, addReview, deleteReview, updateReview } = require('../controller/reviews')
 const Review = require('../models/Review')
 const { authRoles, protect } = require('../middleware/auth')
 const advancedResults = require('../middleware/advancedResult')
@@ -13,4 +13,6 @@ router.route('/')
 
 router.route('/:id')
     .get(getReview)
+    .put(protect, authRoles("user", "admin"), updateReview)
+    .delete(protect, authRoles("user", "admin"), deleteReview)
 module.exports = router
