@@ -6,6 +6,7 @@ const ErrorHandler = require("./middleware/error")
 const fileupload = require('express-fileupload')
 const cookieParser = require('cookie-parser')
 const path = require('path')
+const mongoSanitize = require('express-mongo-sanitize');
 
 //load all config variables
 dotenv.config({ path: './config/config.env' })
@@ -37,6 +38,9 @@ if (process.env.NODE_ENV === 'development') {
 
 // File Upload
 app.use(fileupload())
+
+// To prevent no Sql injection query(Security)
+app.use(mongoSanitize());
 
 
 // Set Static Folder
