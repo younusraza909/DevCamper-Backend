@@ -14,9 +14,9 @@ exports.protect = asyncHandler(async (req, res, next) => {
     }
 
     // So if token is send in production mode by cookies
-    // else if (req.cookies.token) {
-    //     token = req.cookies.token
-    // }
+    else if (req.cookies.token) {
+        token = req.cookies.token
+    }
 
     // Make sure token exist
     if (!token) {

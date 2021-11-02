@@ -86,9 +86,6 @@ exports.updateReview = asyncHandler(async (req, res, next) => {
     }
 
     // Make sure review belongs to user or user is admin
-    console.log(review.user.toString())
-    console.log(req.user.id)
-    console.log(req.user.role)
     if (review.user.toString() !== req.user.id && req.user.role !== 'admin') {
         return next(new ErrorResponse(`Not authorized to update review`, 401));
     }
